@@ -1,5 +1,5 @@
 import type { AstroIntegration } from 'astro';
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { access, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,8 +12,8 @@ export interface MarkdownAlternateOptions {
     href?: (pathname: string) => string | null;
 }
 
-function defaultTest(_pathname: string, html: string): boolean {
-    return html.includes('og:type') && html.includes('"article"');
+function defaultTest(_pathname: string, _html: string): boolean {
+    return true;
 }
 
 function defaultHref(pathname: string): string | null {
@@ -47,6 +47,12 @@ export function markdownAlternate(options: MarkdownAlternateOptions = {}): Astro
                             if (!test(pathname, html)) return;
                             const markdownHref = href(pathname);
                             if (!markdownHref) return;
+                            const mdFilePath = join(base, markdownHref);
+                            try {
+                                await access(mdFilePath);
+                            } catch {
+                                return;
+                            }
                             const link = `<link rel="alternate" type="text/markdown" href="${markdownHref}">`;
                             await writeFile(fullPath, html.replace('</head>', `${link}\n</head>`));
                         }),

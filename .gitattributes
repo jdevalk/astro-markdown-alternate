@@ -1,0 +1,6 @@
+* text=auto
+
+dist/ export-ignore
+node_modules/ export-ignore
+.github/ export-ignore
+tsconfig*.json export-ignore

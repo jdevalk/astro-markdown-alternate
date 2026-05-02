@@ -1,10 +1,11 @@
 {
   "name": "@jdevalk/astro-markdown-alternate",
   "version": "0.1.0",
-  "description": "Astro integration that injects <link rel=\"alternate\" type=\"text/markdown\"> into article pages at build time.",
+  "description": "Astro integration that makes markdown sources discoverable via <link rel=\"alternate\" type=\"text/markdown\">, so AI agents and HTTP clients can fetch the raw content of any page.",
   "keywords": [
     "astro",
     "astro-integration",
+    "withastro",
     "markdown",
     "agent-ready",
     "alternate"

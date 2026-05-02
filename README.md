@@ -1,8 +1,10 @@
 # @jdevalk/astro-markdown-alternate
 
-Astro integration that injects `<link rel="alternate" type="text/markdown">` into article pages at build time, allowing AI agents and other clients to discover the markdown version of each page.
+[![CI](https://github.com/jdevalk/astro-markdown-alternate/actions/workflows/ci.yml/badge.svg)](https://github.com/jdevalk/astro-markdown-alternate/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@jdevalk/astro-markdown-alternate.svg)](https://www.npmjs.com/package/@jdevalk/astro-markdown-alternate)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Described in [joost.blog/markdown-alternate/](https://joost.blog/markdown-alternate/).
+This Astro integration makes the markdown source of each page discoverable via `<link rel="alternate" type="text/markdown">`, so AI agents and HTTP clients can fetch raw content directly. Read more on [joost.blog/markdown-alternate/](https://joost.blog/markdown-alternate/).
 
 ## Installation
 
@@ -21,20 +23,20 @@ export default defineConfig({
 });
 ```
 
-For every built HTML page whose `<head>` contains `og:type="article"`, the integration appends:
+For every built page that has a corresponding `.md` file in the output directory, the integration appends to `<head>`:
 
 ```html
 <link rel="alternate" type="text/markdown" href="/your-post.md">
 ```
 
-This assumes you have `.md` endpoints at `/{slug}.md`. See [createMarkdownEndpoint](https://github.com/jdevalk/seo-graph) for a ready-made route factory.
+Pages without a matching `.md` file are silently skipped, so no broken alternate links are ever emitted. See [createMarkdownEndpoint](https://github.com/jdevalk/seo-graph) for a ready-made route factory that generates those `.md` files.
 
 ## Options
 
 ```ts
 markdownAlternate({
-    // Override which pages get the link.
-    // Default: pages whose HTML contains og:type="article".
+    // Override which pages are candidates for a link.
+    // Default: all pages (the .md existence check always runs regardless).
     test(pathname, html) {
         return html.includes('"article"');
     },
@@ -47,6 +49,36 @@ markdownAlternate({
     },
 })
 ```
+
+## Content negotiation with Cloudflare
+
+The `<link rel="alternate">` tag lets clients discover the markdown URL. Clients that send `Accept: text/markdown` can also receive the `.md` file directly via a Cloudflare Transform Rule — no server-side code needed.
+
+### Create the rule
+
+In the Cloudflare dashboard, go to **Rules → Transform Rules → URL Rewrite**, create a new rule, and configure it as follows:
+
+**When incoming requests match:**
+
+Use a custom filter expression:
+
+```
+any(http.request.headers["accept"][*] contains "text/markdown")
+```
+
+**Then rewrite the URL — Path → Dynamic:**
+
+```
+concat(regex_replace(http.request.uri.path, "/$", ""), ".md")
+```
+
+This strips any trailing slash from the path and appends `.md`, so a request for `/my-post/` with `Accept: text/markdown` is rewritten to serve `/my-post.md`.
+
+The rule only fires when the `Accept` header actually contains `text/markdown`, so normal browser traffic is unaffected.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
