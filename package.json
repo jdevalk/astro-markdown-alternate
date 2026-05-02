@@ -1,0 +1,49 @@
+{
+  "name": "@jdevalk/astro-markdown-alternate",
+  "version": "0.1.0",
+  "description": "Astro integration that injects <link rel=\"alternate\" type=\"text/markdown\"> into article pages at build time.",
+  "keywords": [
+    "astro",
+    "astro-integration",
+    "markdown",
+    "agent-ready",
+    "alternate"
+  ],
+  "author": "Joost de Valk <joost@joost.blog>",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdevalk/astro-markdown-alternate.git"
+  },
+  "bugs": "https://github.com/jdevalk/astro-markdown-alternate/issues",
+  "homepage": "https://github.com/jdevalk/astro-markdown-alternate#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "astro": "^5.0.0 || ^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "astro": "^6.0.5",
+    "typescript": "^5.6.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}
