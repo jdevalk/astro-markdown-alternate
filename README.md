@@ -80,7 +80,9 @@ In the Cloudflare dashboard, go to **Rules → Transform Rules → URL Rewrite**
 Filter expression:
 
 ```
-http.request.headers["accept"][0] contains "text/markdown" and http.request.uri.path ne "/"
+http.request.headers["accept"][0] contains "text/markdown"
+and ends_with(http.request.uri.path, "/")
+and http.request.uri.path ne "/"
 ```
 
 Path → Dynamic:
@@ -89,7 +91,7 @@ Path → Dynamic:
 wildcard_replace(http.request.uri.path, "*/", "${1}.md")
 ```
 
-This rewrites `/my-post/` → `/my-post.md` for any request with `Accept: text/markdown`.
+This rewrites `/my-post/` → `/my-post.md` for any request with `Accept: text/markdown`. The `ends_with` guard ensures the rule only fires for paths with a trailing slash, matching the pattern `wildcard_replace` expects.
 
 **Rule 2 — root path**
 
