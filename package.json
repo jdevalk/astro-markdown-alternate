@@ -1,6 +1,6 @@
 {
   "name": "@jdevalk/astro-markdown-alternate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Astro integration that makes markdown sources discoverable via <link rel=\"alternate\" type=\"text/markdown\">, so AI agents and HTTP clients can fetch the raw content of any page.",
   "keywords": [
     "astro",

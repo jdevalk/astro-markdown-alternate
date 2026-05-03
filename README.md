@@ -31,6 +31,19 @@ For every built page that has a corresponding `.md` file in the output directory
 
 Pages without a matching `.md` file are silently skipped, so no broken alternate links are ever emitted. See [createMarkdownEndpoint](https://github.com/jdevalk/seo-graph) for a ready-made route factory that generates those `.md` files.
 
+## X-Markdown-Tokens header
+
+For each processed page, the integration also appends an entry to `_headers` in the output directory:
+
+```
+/your-post.md
+  X-Markdown-Tokens: 312
+```
+
+The value is an estimated token count — byte length of the markdown file divided by 4, matching Cloudflare's approach. This lets AI agents check context-window cost before fetching the full content.
+
+`_headers` is supported by **Cloudflare Pages** and **Netlify**. On other platforms the file is silently ignored. If you already have a `_headers` file, entries are appended rather than overwriting it.
+
 ## Options
 
 ```ts
@@ -47,6 +60,10 @@ markdownAlternate({
         const slug = pathname.replace(/^\/|\/$/g, '');
         return slug ? `/${slug}.md` : null;
     },
+
+    // Set to false to skip writing X-Markdown-Tokens entries to _headers.
+    // Default: true.
+    tokenHeader: false,
 })
 ```
 
