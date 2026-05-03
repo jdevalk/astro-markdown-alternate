@@ -69,29 +69,64 @@ markdownAlternate({
 
 ## Content negotiation with Cloudflare
 
-The `<link rel="alternate">` tag lets clients discover the markdown URL. Clients that send `Accept: text/markdown` can also receive the `.md` file directly via a Cloudflare Transform Rule — no server-side code needed.
+The `<link rel="alternate">` tag lets clients discover the markdown URL. Clients that send `Accept: text/markdown` can also receive the `.md` file directly via Cloudflare Transform Rules — no server-side code needed.
 
-### Create the rule
+### Create two rules
 
-In the Cloudflare dashboard, go to **Rules → Transform Rules → URL Rewrite**, create a new rule, and configure it as follows:
+In the Cloudflare dashboard, go to **Rules → Transform Rules → URL Rewrite**.
 
-**When incoming requests match:**
+**Rule 1 — all paths except root**
 
-Use a custom filter expression:
-
-```
-any(http.request.headers["accept"][*] contains "text/markdown")
-```
-
-**Then rewrite the URL — Path → Dynamic:**
+Filter expression:
 
 ```
-concat(regex_replace(http.request.uri.path, "/$", ""), ".md")
+http.request.headers["accept"][0] contains "text/markdown" and http.request.uri.path ne "/"
 ```
 
-This strips any trailing slash from the path and appends `.md`, so a request for `/my-post/` with `Accept: text/markdown` is rewritten to serve `/my-post.md`.
+Path → Dynamic:
 
-The rule only fires when the `Accept` header actually contains `text/markdown`, so normal browser traffic is unaffected.
+```
+wildcard_replace(http.request.uri.path, "*/", "${1}.md")
+```
+
+This rewrites `/my-post/` → `/my-post.md` for any request with `Accept: text/markdown`.
+
+**Rule 2 — root path**
+
+Filter expression:
+
+```
+http.request.headers["accept"][0] contains "text/markdown" and http.request.uri.path eq "/"
+```
+
+Path → Static: `/index.md`
+
+You'll need a static `/index.md` endpoint in your Astro site for this to resolve. A minimal one:
+
+```ts
+// src/pages/index.md.ts
+import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
+
+export const GET: APIRoute = async () => {
+    const posts = await getCollection('blog', ({ data }) => !data.draft);
+    const sorted = posts.sort((a, b) =>
+        new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+    );
+    const body = [
+        '# My Site',
+        '',
+        '## Recent articles',
+        '',
+        ...sorted.slice(0, 10).map(p => `- [${p.data.title}](/${p.id}/)`),
+    ].join('\n');
+    return new Response(body, {
+        headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+    });
+};
+```
+
+Both rules only fire when the `Accept` header contains `text/markdown`, so normal browser traffic is unaffected.
 
 ## Contributing
 
